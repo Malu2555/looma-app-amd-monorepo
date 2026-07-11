@@ -1,0 +1,21 @@
+
+# Using Fireworks AI as the OpenAI-compatible provider
+spring:
+  ai:
+    openai:
+      base-url: ${FIREWORKS_BASE_URL}
+      api-key: ${FIREWORKS_API_KEY}
+      allowed-models: ${ALLOWED_MODELS}
+
+# Akka Configuration
+akka:
+  loglevel: "WARNING"
+  stdout-loglevel: "WARNING"
+  actor:
+    provider: "local"
+    default-dispatcher:
+      type: Dispatcher
+      fork-join-executor:
+        parallelism-min: 4
+        parallelism-factor: 3.0
+        parallelism-max: 16

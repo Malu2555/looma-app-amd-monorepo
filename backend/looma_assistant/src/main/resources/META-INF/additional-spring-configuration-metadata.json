@@ -1,0 +1,47 @@
+{"properties": [
+  {
+    "name": "openai.api-key",
+    "type": "java.lang.String",
+    "description": "A description for 'openai.api-key'"
+  },
+  {
+    "name": "spring.ai.openai.allowed-models",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.ai.openai.allowed-models'"
+  },
+  {
+    "name": "akka.actor.default-dispatcher.fork-join-executor.parallelism-max",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.actor.default-dispatcher.fork-join-executor.parallelism-max'"
+  },
+  {
+    "name": "akka.loglevel",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.loglevel'"
+  },
+  {
+    "name": "akka.stdout-loglevel",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.stdout-loglevel'"
+  },
+  {
+    "name": "akka.actor.provider",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.actor.provider'"
+  },
+  {
+    "name": "akka.actor.default-dispatcher.type",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.actor.default-dispatcher.type'"
+  },
+  {
+    "name": "akka.actor.default-dispatcher.fork-join-executor.parallelism-min",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.actor.default-dispatcher.fork-join-executor.parallelism-min'"
+  },
+  {
+    "name": "akka.actor.default-dispatcher.fork-join-executor.parallelism-factor",
+    "type": "java.lang.String",
+    "description": "A description for 'akka.actor.default-dispatcher.fork-join-executor.parallelism-factor'"
+  }
+]}

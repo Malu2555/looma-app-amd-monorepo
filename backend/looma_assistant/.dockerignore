@@ -1,0 +1,30 @@
+# ── Build artifacts ─────────────────────────────────────────────────────
+target
+*.jar
+*.war
+
+# ── IDE & editor files ──────────────────────────────────────────────────
+.vscode
+.idea
+*.iml
+*.swp
+*.swo
+*~
+
+# ── OS files ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Git ──────────────────────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ── Documentation ────────────────────────────────────────────────────────
+HELP.md
+README.md
+
+# ── Maven wrapper (not needed in Docker build, Maven image has its own) ──
+.mvn
+mvnw
+mvnw.cmd

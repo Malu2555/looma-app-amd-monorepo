@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: looma_assistant
+  profiles:
+    active: dev
+#Set this to 'prod' inside your dockerfile when running in prod

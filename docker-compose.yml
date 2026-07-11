@@ -1,0 +1,24 @@
+services:
+  # ── Backend (headless CLI / harness) ────────────────────────────────────
+  # Runs in headless CLI mode (SPRING_PROFILES_ACTIVE=PROD) for the harness.
+  # The frontend service has been removed — this compose file now targets
+  # the backend only.
+  #
+  # Start the headless backend with:
+  #   docker-compose up
+  backend:
+    image: ghcr.io/placeholder/looma-assistant:latest
+    build:
+      context: ./backend/looma_assistant
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      # Relative mounts work on both Windows (Docker Desktop) and Linux.
+      # Create ./input_data and ./output_data directories before running.
+      - ./input_data:/input
+      - ./output_data:/output
+    environment:
+      - API_KEY=${API_KEY:-local testing-key}
+      - BASE_URL=${FIREWORKS_AI_URL}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-PROD}
