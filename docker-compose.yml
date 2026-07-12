@@ -7,7 +7,7 @@ services:
   # Start the headless backend with:
   #   docker-compose up
   backend:
-    image: ghcr.io/placeholder/looma-assistant:latest
+    image: ghcr.io/malu2555/looma:latest
     build:
       context: ./backend/looma_assistant
       dockerfile: Dockerfile
@@ -16,9 +16,10 @@ services:
     volumes:
       # Relative mounts work on both Windows (Docker Desktop) and Linux.
       # Create ./input_data and ./output_data directories before running.
-      - ./input_data:/input
+      - ./input_data:/input 
       - ./output_data:/output
     environment:
-      - API_KEY=${API_KEY:-local testing-key}
-      - BASE_URL=${FIREWORKS_AI_URL}
+      - FIREWORKS_BASE_URL=${FIREWORKS_BASE_URL}
+      - FIREWORKS_API_KEY=${FIREWORKS_API_KEY}
+      - ALLOWED_MODELS=${ALLOWED_MODELS}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-PROD}

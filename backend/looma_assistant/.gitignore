@@ -41,3 +41,4 @@ src/main/resources/application-*.yml
 # Maven wrapper (optional — uncomment to exclude)
 # mvnw
 # mvnw.cmd
+*.txt

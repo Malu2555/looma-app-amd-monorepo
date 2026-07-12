@@ -2,208 +2,72 @@
 /**
  * ChatBotViewCard.vue
  *
- * An interactive chat interface card for single-prompt debugging.
- *
- * The card wraps:
- *   - A scrollable message list (ChatMessage components)
- *   - A ChatInput in single-prompt mode
- *   - Internal state for conversation history
- *
- * It exposes the single-prompt API via `sendPrompt()` and handles
- * loading / error states. Each AI response is color-coded by the
- * worker actor route returned from the backend.
+ * Chat message list card — uses OutputView + OutputCard internally.
+ * The parent (App.vue) calls `sendPrompt(prompt)` via template ref.
  */
 
 import { ref } from 'vue'
-import ChatMessage from './ChatMessage.vue'
-import ChatInput from './ChatInput.vue'
+import OutputView from './OutputView.vue'
 import { sendPrompt } from '../services/api.js'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-/**
- * @typedef {Object} ChatEntry
- * @property {'user'|'ai'} role
- * @property {string}       message
- * @property {string}       [actor]
- * @property {string}       [timestamp]
- * @property {boolean}      [loading]
- */
-
-// ---------------------------------------------------------------------------
-// State
-// ---------------------------------------------------------------------------
-
-/** @type {import('vue').Ref<ChatEntry[]>} */
-const messages = ref([])
-
-const isWaiting = ref(false)
-
-/** Reference to the message list container for auto-scroll. */
-const messageListRef = ref(null)
+const outputViewRef = ref(null)
 
 /** Default actor label for AI responses. */
 const aiActor = ref('TaskSupervisorActor')
 
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
-
 /**
- * Called when ChatInput emits 'submit' (single prompt).
- * Sends the prompt to the backend, pushes a user message and then
- * the AI response into the conversation.
+ * Called by the parent (App.vue) when the shared ChatInput submits a prompt.
  */
-async function handleSend(prompt) {
-  if (isWaiting.value) return
+async function sendPromptHandler(prompt) {
+  const view = outputViewRef.value
+  if (!view) return
 
   // Push user message
-  messages.value.push({
+  view.addOutput({
     role: 'user',
     message: prompt,
     timestamp: new Date().toISOString(),
   })
 
   // Push a loading placeholder
-  messages.value.push({
-    role: 'ai',
-    message: '',
-    actor: aiActor.value,
-    timestamp: null,
-    loading: true,
-  })
-  isWaiting.value = true
-  scrollToBottom()
+  view.setLoading(true)
 
   try {
     const { data } = await sendPrompt(prompt)
+    const answer = data.answer ?? data.response ?? data.message ?? JSON.stringify(data)
 
     // Replace the loading message with the actual response
-    const lastIdx = messages.value.length - 1
-    messages.value[lastIdx] = {
+    view.replaceLast({
       role: 'ai',
-      message: data.answer ?? data.response ?? data.message ?? JSON.stringify(data),
+      message: answer,
       actor: aiActor.value,
       timestamp: new Date().toISOString(),
       loading: false,
-    }
+    })
   } catch (err) {
-    const lastIdx = messages.value.length - 1
-    messages.value[lastIdx] = {
+    view.replaceLast({
       role: 'ai',
-      message: `⚠️ Error: ${err.message}`,
+      message: `Error: ${err.message}`,
       actor: 'default',
       timestamp: new Date().toISOString(),
       loading: false,
-    }
+      error: true,
+    })
   } finally {
-    isWaiting.value = false
-    scrollToBottom()
+    view.setLoading(false)
   }
 }
 
-/** Copy a message text to the clipboard. */
-function copyMessage(text) {
-  navigator.clipboard.writeText(text).catch(() => {
-    // Fallback — silently ignore
-  })
-}
-
-/** Clear the current conversation. */
-function clearConversation() {
-  messages.value = []
-}
-
-/** Auto-scroll the message list to the bottom. */
-function scrollToBottom() {
-  setTimeout(() => {
-    if (messageListRef.value) {
-      messageListRef.value.scrollTop = messageListRef.value.scrollHeight
-    }
-  }, 50)
-}
+defineExpose({ sendPrompt: sendPromptHandler })
 </script>
 
 <template>
-  <div class="chatbot-card card">
-    <!-- Header -->
-    <div class="card-header">
-      <h4>
-        <span class="pulse-dot" :class="isWaiting ? 'loading' : 'active'" />
-        Chat Debug — Single Prompt
-      </h4>
-      <div class="card-header__actions">
-        <span class="badge badge-blue">PROMPT</span>
-        <button class="btn btn-ghost btn-sm" title="Clear conversation" @click="clearConversation">
-          🗑️
-        </button>
-      </div>
-    </div>
-
-    <!-- Message list -->
-    <div ref="messageListRef" class="chatbot-card__messages">
-      <template v-if="messages.length === 0">
-        <div class="chatbot-card__empty">
-          <span class="text-muted">Send a prompt to start debugging.</span>
-        </div>
-      </template>
-
-      <template v-for="(entry, idx) in messages" :key="idx">
-        <ChatMessage
-          :message="entry.message"
-          :actor="entry.actor ?? 'default'"
-          :is-user="entry.role === 'user'"
-          :timestamp="entry.timestamp"
-          :loading="entry.loading ?? false"
-          @copy="copyMessage"
-        />
-      </template>
-    </div>
-
-    <!-- Input footer -->
-    <div class="chatbot-card__input">
-      <ChatInput :disabled="isWaiting" :bulk-mode="false" @submit="handleSend" />
-    </div>
-  </div>
+  <OutputView
+    ref="outputViewRef"
+    title="Chat Debug — Single Prompt"
+    badge-text="PROMPT"
+    badge-class="blue"
+    :actor-label="aiActor"
+    empty-text="Send a prompt to start debugging."
+  />
 </template>
-
-<style scoped>
-.chatbot-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 400px;
-}
-.card-header__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-/* ---------- Message list (scrollable) ---------- */
-.chatbot-card__messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  background: var(--bg-primary);
-}
-.chatbot-card__empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 120px;
-  font-size: var(--font-size-sm);
-}
-
-/* ---------- Input area pinned to bottom ---------- */
-.chatbot-card__input {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border-color);
-}
-</style>

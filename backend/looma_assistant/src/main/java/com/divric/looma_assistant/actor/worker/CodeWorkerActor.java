@@ -62,7 +62,7 @@ public class CodeWorkerActor extends AbstractActor {
         String fullPrompt = buildCodePrompt(cleanedPrompt);
 
         // 4. Perform real LLM inference via ModelHolder with token limit
-        String rawResponse = ModelHolder.call(fullPrompt, MAX_TOKENS);
+        String rawResponse = ModelHolder.call(fullPrompt, MAX_TOKENS, modelId);
 
         // 4. Sanitize the LLM response
         String cleanResponse = TextSanitizer.sanitizeResponse(rawResponse);

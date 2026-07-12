@@ -141,7 +141,7 @@ defineExpose({ clear })
         class="chat-input__textarea chat-input__textarea--single"
         placeholder="Type your message… (Ctrl+Enter to send)"
         :disabled="disabled"
-        rows="3"
+        rows="2"
         @keydown="onKeydown"
       />
 
@@ -154,7 +154,7 @@ defineExpose({ clear })
         :class="{ 'chat-input__textarea--error': jsonError }"
         placeholder='[{ "task_id": "text", "prompt": "…" }, …]'
         :disabled="disabled"
-        rows="10"
+        rows="5"
         spellcheck="false"
         @keydown="onKeydown"
       />
@@ -186,7 +186,7 @@ defineExpose({ clear })
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-tertiary);
 }
@@ -206,7 +206,7 @@ defineExpose({ clear })
   font-family: var(--font-mono);
 }
 .chat-input__body {
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 .chat-input__textarea {
   width: 100%;
@@ -226,12 +226,14 @@ defineExpose({ clear })
   box-shadow: var(--glow-blue);
 }
 .chat-input__textarea--single {
-  min-height: 60px;
+  min-height: 40px;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 .chat-input__textarea--json {
-  min-height: 200px;
+  min-height: 100px;
   line-height: 1.6;
   tab-size: 2;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 .chat-input__textarea--error {
   border-color: var(--accent-red) !important;
@@ -241,7 +243,7 @@ defineExpose({ clear })
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-xs) var(--spacing-md);
   border-top: 1px solid var(--border-color);
 }
 .chat-input__hint {

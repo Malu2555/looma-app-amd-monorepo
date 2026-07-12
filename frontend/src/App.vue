@@ -4,15 +4,20 @@
  *
  * Root component — wires together the entire Looma Assistant frontend.
  *
- * Layout:
+ * Terminal-style layout:
  *   ┌──────────────────────────────────────────────┐
  *   │  PerformanceStats  (top bar / collapsible)   │
  *   ├──────────────────────┬───────────────────────┤
  *   │                      │                       │
  *   │  ChatBotViewCard     │  BatchRunnerViewCard  │
- *   │  (single prompt)     │  (bulk JSON)          │
+ *   │  (scrollable chat)   │  (scrollable results) │
  *   │                      │                       │
- *   └──────────────────────┴───────────────────────┘
+ *   ├──────────────────────────────────────────────┤
+ *   │  Mode Toggle (Single / Batch) + ChatInput    │
+ *   └──────────────────────────────────────────────┘
+ *
+ * Input is always pinned to the bottom like a terminal prompt.
+ * Cards above scroll freely as content is added.
  *
  * Uses Composition API (script setup) throughout.
  */
@@ -21,12 +26,36 @@ import { ref, computed } from 'vue'
 import PerformanceStats from './components/PerformanceStats.vue'
 import ChatBotViewCard from './components/ChatBotViewCard.vue'
 import BatchRunnerViewCard from './components/BatchRunnerViewCard.vue'
+import ChatInput from './components/ChatInput.vue'
 
 /** Toggle the performance stats panel visibility. */
 const showPerformance = ref(true)
 
 /** API URL for display in the sidebar. */
 const apiUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'localhost:8080/api')
+
+/** Current input mode: 'single' or 'batch' */
+const inputMode = ref('single')
+
+/** Template refs to child cards for calling exposed methods. */
+const chatCardRef = ref(null)
+const batchCardRef = ref(null)
+
+/**
+ * Called when the shared ChatInput emits 'submit' (single prompt mode).
+ * Routes the prompt to ChatBotViewCard's exposed sendPrompt method.
+ */
+function handleSingleSubmit(prompt) {
+  chatCardRef.value?.sendPrompt(prompt)
+}
+
+/**
+ * Called when the shared ChatInput emits 'submit-batch' (batch mode).
+ * Routes the tasks to BatchRunnerViewCard's exposed runBatch method.
+ */
+function handleBatchSubmit(tasks) {
+  batchCardRef.value?.runBatch(tasks)
+}
 </script>
 
 <template>
@@ -66,23 +95,51 @@ const apiUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'localhost:80
         </div>
       </Transition>
 
-      <!-- Chat + Batch cards side by side -->
+      <!-- Chat + Batch cards side by side (scrollable area above input) -->
       <div class="app-content">
         <div class="app-cards">
           <div class="app-cards__item">
-            <ChatBotViewCard />
+            <ChatBotViewCard ref="chatCardRef" />
           </div>
           <div class="app-cards__item">
-            <BatchRunnerViewCard />
+            <BatchRunnerViewCard ref="batchCardRef" />
           </div>
         </div>
+      </div>
+
+      <!-- Terminal-style input pinned to bottom -->
+      <div class="app-input-area">
+        <!-- Mode toggle -->
+        <div class="app-input-area__mode-toggle">
+          <button
+            class="btn btn-sm"
+            :class="inputMode === 'single' ? 'btn-primary' : 'btn-ghost'"
+            @click="inputMode = 'single'"
+          >
+            💬 Single Prompt
+          </button>
+          <button
+            class="btn btn-sm"
+            :class="inputMode === 'batch' ? 'btn-primary' : 'btn-ghost'"
+            @click="inputMode = 'batch'"
+          >
+            📋 Batch JSON
+          </button>
+        </div>
+
+        <!-- Shared ChatInput -->
+        <ChatInput
+          :bulk-mode="inputMode === 'batch'"
+          @submit="handleSingleSubmit"
+          @submit-batch="handleBatchSubmit"
+        />
       </div>
     </main>
   </div>
 </template>
 
 <style scoped>
-/* ---------- Sidebar brand ---------- */
+/* ---------- Sidebar brand (flex) ---------- */
 .app-sidebar__brand {
   display: flex;
   align-items: center;
@@ -104,7 +161,7 @@ const apiUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'localhost:80
   font-size: var(--font-size-xs);
 }
 
-/* ---------- Sidebar nav ---------- */
+/* ---------- Sidebar nav (flex) ---------- */
 .app-sidebar__nav {
   flex: 1;
   padding: var(--spacing-md);
@@ -131,7 +188,7 @@ const apiUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'localhost:80
   border-top: 1px solid var(--border-color);
 }
 
-/* ---------- Performance stats panel ---------- */
+/* ---------- Performance stats panel (flex) ---------- */
 .app-performance {
   flex-shrink: 0;
   border-bottom: 1px solid var(--border-color);
@@ -139,26 +196,18 @@ const apiUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'localhost:80
   overflow-y: auto;
 }
 
-/* ---------- Two-column card layout ---------- */
-.app-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-lg);
-  flex: 1;
-  min-height: 0;
+/* ---------- Terminal input area pinned to bottom (flex) ---------- */
+.app-input-area {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
 }
-.app-cards__item {
+.app-input-area__mode-toggle {
   display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-.app-cards__item:last-child {
-  margin-bottom: 0;
-}
-
-@media (max-width: 1024px) {
-  .app-cards {
-    grid-template-columns: 1fr;
-  }
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
 }
 </style>

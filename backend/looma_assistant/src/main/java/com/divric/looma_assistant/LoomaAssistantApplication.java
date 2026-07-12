@@ -97,34 +97,36 @@ public class LoomaAssistantApplication {
 
             log.info("PROD mode — CommandLineRunner starting headless engine...");
 
-            // Create a headless engine with a 60-second timeout
-            TaskSupervisorEngine engine = new TaskSupervisorEngine("looma-headless", 60_000);
+            // Harness budget: boot <60s, total run <10min. Use a 9-minute engine
+            // timeout to leave margin under the 10-minute hard limit.
+            TaskSupervisorEngine engine = new TaskSupervisorEngine("looma-headless", 540_000);
+
+            // Task/result paths are fed by the harness via mounted volumes.
+            // Override with INPUT_FILE / OUTPUT_FILE env vars if needed.
+            String inputFile = System.getenv().getOrDefault("INPUT_FILE", "/input/tasks.json");
+            String outputFile = System.getenv().getOrDefault("OUTPUT_FILE", "/output/results.json");
 
             try {
-                // Build tasks from CLI arguments
-                List<TaskInput> tasks = buildTasksFromArgs(args);
+                // Primary: load tasks from the harness-provided JSON file.
+                List<TaskInput> tasks = loadTasksFromFile(engine, inputFile);
+
+                // Fallback: CLI args in "task_id|prompt" form (local testing).
+                if (tasks.isEmpty()) {
+                    tasks = buildTasksFromArgs(args);
+                }
 
                 if (tasks.isEmpty()) {
-                    log.info("No tasks provided. Use: java -jar looma-assistant.jar \"task_id|prompt\"");
-                    log.info("Example: java -jar looma-assistant.jar \"task-1|write a hello world\" \"task-2|capital of France\"");
+                    log.warn("No tasks found in {} or CLI args — writing empty results and exiting", inputFile);
+                    engine.writeResults(List.of(), outputFile);
                     return;
                 }
 
                 log.info("Processing {} task(s)...", tasks.size());
                 List<TaskResultOutput> results = engine.execute(tasks);
 
-                // Print results to stdout
-                System.out.println("\n========== RESULTS ==========");
-                for (int i = 0; i < results.size(); i++) {
-                    TaskResultOutput output = results.get(i);
-                    System.out.printf("[%d] task_id=%s | answer=%s%n",
-                            i + 1,
-                            output.task_id(),
-                            output.answer() != null
-                                    ? output.answer().substring(0, Math.min(output.answer().length(), 200))
-                                    : "N/A");
-                }
-                System.out.println("==============================\n");
+                // Persist results to the harness-expected output file.
+                engine.writeResults(results, outputFile);
+                log.info("Wrote {} result(s) to {}", results.size(), outputFile);
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -140,6 +142,24 @@ public class LoomaAssistantApplication {
                 System.exit(0);
             }
         };
+    }
+
+    /**
+     * Loads tasks from the harness-provided JSON file. Returns an empty list
+     * (rather than throwing) when the file is missing or contains no tasks, so
+     * the container can still exit cleanly with an empty results file.
+     */
+    private static List<TaskInput> loadTasksFromFile(TaskSupervisorEngine engine, String inputFile) {
+        try {
+            List<TaskInput> tasks = engine.loadTasks(inputFile);
+            if (tasks.isEmpty()) {
+                log.warn("Input file {} contained no tasks", inputFile);
+            }
+            return tasks;
+        } catch (Exception e) {
+            log.warn("Could not load tasks from {}: {}", inputFile, e.getMessage());
+            return List.of();
+        }
     }
 
     /**

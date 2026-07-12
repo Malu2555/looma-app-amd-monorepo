@@ -468,38 +468,63 @@ textarea {
   }
 }
 
-/* ---------- Dashboard layout ---------- */
+/* =============================================================
+   DASHBOARD GRID LAYOUT (global)
+   ============================================================= */
+
+/* Root grid: sidebar | main content */
 .app-layout {
-  display: flex;
-  height: 100vh;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: 100vh;
   overflow: hidden;
 }
 
+/* Sidebar — keeps its own internal flex layout */
 .app-sidebar {
-  width: var(--sidebar-width);
-  min-width: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
+/* Main content area — stacks PerformanceStats + cards + input (terminal-style) */
 .app-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
   overflow: hidden;
   background: var(--bg-primary);
 }
 
+/* Content wrapper — contains the two-column card grid */
 .app-content {
-  flex: 1;
-  overflow-y: auto;
   padding: var(--spacing-lg);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* Two-column grid for ChatBotViewCard + BatchRunnerViewCard */
+.app-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-lg);
+  min-height: 0;
+}
+
+/* Each card wrapper fills its grid cell */
+.app-cards__item {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Collapse to single column on narrower screens */
+@media (max-width: 1024px) {
+  .app-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Responsive ---------- */
@@ -508,10 +533,10 @@ textarea {
     --sidebar-width: 100%;
   }
   .app-layout {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
   }
   .app-sidebar {
-    height: auto;
     max-height: 40vh;
     border-right: none;
     border-bottom: 1px solid var(--border-color);
