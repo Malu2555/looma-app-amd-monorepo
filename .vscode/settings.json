@@ -2,6 +2,8 @@
     "cSpell.words": [
         "agnostically",
         "Akka",
+        "autograder",
+        "autograder's",
         "colour",
         "Customizer",
         "divric",
@@ -29,6 +31,7 @@
         "oxlint",
         "oxlintrc",
         "Pichai",
+        "pydantic",
         "SAMEORIGIN",
         "sparklines",
         "springframework",
@@ -36,6 +39,8 @@
         "temurin",
         "typesafe",
         "urandom",
+        "venv",
+        "Vetur",
         "Vite",
         "Vitest"
     ],

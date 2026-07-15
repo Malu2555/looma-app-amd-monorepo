@@ -9,8 +9,11 @@ services:
   backend:
     image: ghcr.io/malu2555/looma:latest
     build:
-      context: ./backend/looma_assistant
-      dockerfile: Dockerfile
+      # Build context is the backend/ directory so the image can contain BOTH
+      # the Java backend (looma_assistant/) and the synchronous Python runner
+      # (runner/, requirements.text). The Dockerfile lives in looma_assistant/.
+      context: ./backend
+      dockerfile: looma_assistant/Dockerfile
     ports:
       - "8080:8080"
     volumes:

@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
  * to clean up text before sending prompts out, or strip formatting characters
  * from LLM responses before writing them to the output DTO.
  * <p>
- * Centralising this logic here prevents string trimming and regex duplication
- * across the specialised child actors, improving token efficiency.
+ * Centralizing this logic here prevents string trimming and regex duplication
+ * across the specialized child actors, improving token efficiency.
  */
 public final class TextSanitizer {
 

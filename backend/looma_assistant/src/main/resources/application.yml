@@ -3,4 +3,10 @@ spring:
     name: looma_assistant
   profiles:
     active: dev
+  # Enable Project Loom virtual threads (Java 21) for the web server and
+  # Spring-managed task executors. This lets the synchronous runner layer
+  # handle the autograder's blocking I/O without exhausting platform threads.
+  threads:
+    virtual:
+      enabled: true
 #Set this to 'prod' inside your dockerfile when running in prod
