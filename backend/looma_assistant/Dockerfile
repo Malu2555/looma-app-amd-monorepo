@@ -8,9 +8,8 @@
 #    FROM maven:3.9-eclipse-temurin-21@sha256:<digest>
 #    FROM eclipse-temurin:21-jre@sha256:<digest>
 #
-#  Build context is the `backend/` directory (set in docker-compose.yml) so the
-#  image can contain BOTH the Java backend (looma_assistant/) and the
-#  synchronous Python runner (runner/, requirements.text).
+#  Build context is this directory (set in docker-compose.yml or run
+#  `docker build .` from this directory) so COPY paths are relative to here.
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -24,10 +23,10 @@ ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 WORKDIR /workspace
 
 # 1. Copy only POM first — this layer is cached unless dependencies change
-COPY looma_assistant/pom.xml .
+COPY pom.xml .
 
 # 2. Copy the rest of the source
-COPY looma_assistant/src ./src
+COPY src ./src
 
 # 3. Build the application. The BuildKit cache mount persists ~/.m2 across
 #    builds so dependencies are not re-downloaded on every source change.
@@ -60,11 +59,11 @@ COPY --from=build --chown=looma:looma /workspace/target/looma_assistant-0.0.1-SN
 
 # Copy the synchronous runner layer (Python orchestrator + deps manifest)
 COPY --chown=looma:looma runner/main.py /app/runner/main.py
-COPY --chown=looma:looma runner.bash /app/runner.bash
-COPY --chown=looma:looma requirements.text /app/requirements.text
+COPY --chown=looma:looma runner/runner.bash /app/runner.bash
+COPY --chown=looma:looma runner/requirements.text /app/requirements.text
 
 # Install the Python dependencies for the synchronous layer
-RUN pip3 install --no-cache-dir -r /app/requirements.text
+RUN pip3 install --break-system-packages --no-cache-dir -r /app/requirements.text
 
 # Use the prod profile so the container reads application-prod.yml with real API keys
 ENV SPRING_PROFILES_ACTIVE=prod
